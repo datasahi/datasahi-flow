@@ -6,6 +6,7 @@ import jakarta.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.List;
 
 @Singleton
@@ -34,6 +35,15 @@ public class ConfigService {
     }
 
     public String getDataDir() {
-        return workDir + "/data";
+        String dataDir = workDir + "/data";
+        try {
+            File file = new File(dataDir);
+            if (!file.exists()) {
+                file.mkdirs();
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return dataDir;
     }
 }

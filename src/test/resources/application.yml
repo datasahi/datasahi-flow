@@ -1,0 +1,13 @@
+micronaut:
+  application:
+    name: datasahi-xfer
+  server:
+    cors:
+      enabled: true
+    port: ${DATASAHI_PORT:8081}
+    dual-protocol: false
+
+datasahi.xfer:
+  config:
+    paths: ${DATASAHI_CONFIG_PATHS:/test.flow.json}
+  work.dir: ${DATASAHI_WORK_DIR:/tmp}
