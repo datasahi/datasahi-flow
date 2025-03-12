@@ -1,5 +1,5 @@
 applicationType: default
-defaultPackage: datasahi.xfer
+defaultPackage: datasahi.flow
 testFramework: junit
 sourceLanguage: java
 buildTool: gradle

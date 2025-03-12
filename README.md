@@ -1,8 +1,8 @@
-## datasahi xfer
+## datasahi flow
 
 [Home Page](https://datasahi.com)
 
-`datasahi xfer` is a tool to transfer data between different data sources.
+`datasahi flow` is a tool to transfer data between different data sources.
 
 ---
 ### Features
@@ -24,7 +24,7 @@ Sample env file - `datasahi.env`
 ```shell
 DATASAHI_PORT=8082
 DATASAHI_WORK_DIR=/custom/work/dir
-DATASAHI_CONFIG_PATHS=/custom/path/xfer.json
+DATASAHI_CONFIG_PATHS=/custom/path/flow.json
 ```
 - use this command to start the server
  ```shell

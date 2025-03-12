@@ -16,10 +16,10 @@ public class ConfigService {
 
     private final Environment environment;
 
-    @Value("${datasahi.xfer.config.paths}")
+    @Value("${datasahi.flow.config.paths}")
     private List<String> configPaths;
 
-    @Value("${datasahi.xfer.work.dir}")
+    @Value("${datasahi.flow.work.dir}")
     private String workDir;
 
     public ConfigService(Environment environment) {

@@ -12,15 +12,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Singleton
-public class XferConfiguration {
+public class FlowConfiguration {
 
-    private static final Logger LOG = LoggerFactory.getLogger(XferConfiguration.class);
+    private static final Logger LOG = LoggerFactory.getLogger(FlowConfiguration.class);
     private final ConfigService configService;
 
     private final List<JSONObject> dataServers = new ArrayList<>();
     private final List<JSONObject> flows = new ArrayList<>();
 
-    public XferConfiguration(ConfigService configService) {
+    public FlowConfiguration(ConfigService configService) {
         this.configService = configService;
     }
 
