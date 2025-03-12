@@ -5,14 +5,14 @@ import java.util.List;
 
 public class DataHolder<R> {
 
-    private final String subscriptionId;
+    private final String flowId;
     private final BatchInfo batchInfo;
 
     private final List<DataRecord<R>> records = new ArrayList<>();
     private long systemMillis = System.currentTimeMillis();
 
-    public DataHolder(String subscriptionId, BatchInfo batchInfo) {
-        this.subscriptionId = subscriptionId;
+    public DataHolder(String flowId, BatchInfo batchInfo) {
+        this.flowId = flowId;
         this.batchInfo = batchInfo;
     }
 
@@ -28,8 +28,8 @@ public class DataHolder<R> {
         return records;
     }
 
-    public String getSubscriptionId() {
-        return subscriptionId;
+    public String getFlowId() {
+        return flowId;
     }
 
     public boolean isBatched() {

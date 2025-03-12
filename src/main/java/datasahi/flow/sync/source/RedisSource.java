@@ -111,7 +111,7 @@ public class RedisSource implements DataSource, Runnable {
 
     private void populateMilestones() {
         for (DataPipe dataPipe : dataPipes) {
-            String sid = dataPipe.getSubscription().getId();
+            String sid = dataPipe.getFlow().getId();
             milestones.put(sid, milestoneService.fetch(sid));
         }
     }
@@ -190,17 +190,17 @@ public class RedisSource implements DataSource, Runnable {
         DataRecord<Map<String, String>> record =
                 new DataRecord<>(redisDataServer.getId(), LocalDateTime.now(), key, dataHash);
         for (DataPipe p : dataPipes) {
-            Dataset sd = p.getSubscription().getSourceDataset();
+            Dataset sd = p.getFlow().getSourceDataset();
             boolean matched = sd.getType().equals("hash") && key.startsWith(sd.getDataset());
             if (!matched) continue;
 
             if (!liveTraffic) {
                 if (sd.isTsCheck()) {
-                    matched = matchTime(record, p.getSubscription());
+                    matched = matchTime(record, p.getFlow());
                     if (!matched) continue;
                 }
                 if (sd.isFingerprintCheck()) {
-                    matched = matchFingerprint(record, p.getSubscription());
+                    matched = matchFingerprint(record, p.getFlow());
                     if (!matched) continue;
                 }
             }
@@ -222,11 +222,11 @@ public class RedisSource implements DataSource, Runnable {
         }
     }
 
-    private boolean matchFingerprint(DataRecord<Map<String, String>> record, Subscription sub) {
+    private boolean matchFingerprint(DataRecord<Map<String, String>> record, Flow sub) {
         return true;
     }
 
-    private boolean matchTime(DataRecord<Map<String, String>> record, Subscription sub) {
+    private boolean matchTime(DataRecord<Map<String, String>> record, Flow sub) {
         Dataset sd = sub.getSourceDataset();
         String updatedTime = record.getRecord().get(sd.getTsField());
         if (updatedTime == null) return true;

@@ -17,8 +17,14 @@ public class HealthController {
         this.healthCheckService = healthCheckService;
     }
 
+    @Produces(MediaType.TEXT_PLAIN)
+    @Get
+    public String isHealthy() {
+        return "true";
+    }
+
     @Produces(MediaType.TEXT_JSON)
-    @Get("/summary")
+    @Get("/check")
     public String doHealthCheck() {
         long start = System.currentTimeMillis();
         HealthSummary healthSummary = healthCheckService.performHealthCheck();

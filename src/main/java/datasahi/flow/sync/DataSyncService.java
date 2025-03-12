@@ -41,10 +41,10 @@ public class DataSyncService {
 
     @PostConstruct
     public void init() {
-        registryMaker.getSubscriptionRegistry().getSubscriptions().forEach(this::registerSink);
-        registryMaker.getSubscriptionRegistry().getSubscriptions().forEach(this::registerSource);
-        registryMaker.getSubscriptionRegistry().getSubscriptions().forEach(this::wireSubscription);
-        LOG.info("Subscriptions setup for data sync. Total subscriptions: " + pipeMap.size());
+        registryMaker.getFlowRegistry().getFlows().forEach(this::registerSink);
+        registryMaker.getFlowRegistry().getFlows().forEach(this::registerSource);
+        registryMaker.getFlowRegistry().getFlows().forEach(this::wireFlow);
+        LOG.info("Flows setup for data sync. Total flows: " + pipeMap.size());
         sinkMap.values().forEach(DataSink::start);
         pipeMap.values().forEach(DataPipe::start);
     }
@@ -87,18 +87,18 @@ public class DataSyncService {
                 return new VerifyResponse(request)
                         .setMessage("Sync has started. Please stop the sync and retry this operation");
             }
-            Subscription subscription = registryMaker.getSubscriptionRegistry().get(request.getSubscriptionId());
-            String source = subscription.getSourceDataset().getServer();
+            Flow flow = registryMaker.getFlowRegistry().get(request.getFlowId());
+            String source = flow.getSourceDataset().getServer();
             return sourceMap.get(source).verify(request);
         }
     }
 
-    private void wireSubscription(Subscription sub) {
+    private void wireFlow(Flow sub) {
         DataSource dataSource = sourceMap.get(sub.getSourceId());
         DataSink dataSink = sinkMap.get(sub.getSinkId());
         DataPipe dataPipe = new DataPipe(sub, dataSink);
         dataSource.addDataPipe(dataPipe);
-        dataSink.addSubscription(sub);
+        dataSink.addFlow(sub);
         pipeMap.put(sub.getId(), dataPipe);
     }
 
@@ -112,7 +112,7 @@ public class DataSyncService {
         }
     }
 
-    private void registerSource(Subscription sub) {
+    private void registerSource(Flow sub) {
         DataServer source = registryMaker.getDataServerRegistry().get(sub.getSourceId());
         if (source == null) {
             throw new IllegalArgumentException("Source data server not found: " + sub.getSourceId());
@@ -129,7 +129,7 @@ public class DataSyncService {
         }
     }
 
-    private void registerSink(Subscription sub) {
+    private void registerSink(Flow sub) {
         DataServer sink = registryMaker.getDataServerRegistry().get(sub.getSinkId());
         if (sink == null) {
             throw new IllegalArgumentException("Sink data server not found: " + sub.getSinkId());

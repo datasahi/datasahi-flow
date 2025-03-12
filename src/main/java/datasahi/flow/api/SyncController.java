@@ -35,10 +35,10 @@ public class SyncController {
     }
 
     @Produces(MediaType.TEXT_JSON)
-    @Get("/verify/{subscriptionId}/{maxRecordCount}/{maxSeconds}")
-    public String startSync(@Parameter("subscriptionId") String subscriptionId, @Parameter("maxRecordCount") int maxRecordCount,
+    @Get("/verify/{flowId}/{maxRecordCount}/{maxSeconds}")
+    public String startSync(@Parameter("flowId") String flowId, @Parameter("maxRecordCount") int maxRecordCount,
                             @Parameter("maxSeconds") int maxSeconds) {
-        VerifyRequest request = new VerifyRequest(subscriptionId, maxRecordCount, maxSeconds);
+        VerifyRequest request = new VerifyRequest(flowId, maxRecordCount, maxSeconds);
         VerifyResponse response = dataSyncService.verify(request);
         return new ServiceResponse<HealthSummary>().setSuccess(true).setData(response).toJsonString();
     }

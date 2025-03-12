@@ -10,8 +10,8 @@ public interface DataSink {
     DataServerType getType();
     void process(DataHolder dataHolder);
     void processBatch(DataHolder dataHolder);
-    void addSubscription(Subscription subscription);
-    List<Subscription> getSubscriptions();
+    void addFlow(Flow flow);
+    List<Flow> getFlows();
     void start();
     void stop();
 }

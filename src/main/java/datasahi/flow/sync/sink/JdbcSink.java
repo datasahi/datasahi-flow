@@ -7,7 +7,7 @@ import datasahi.flow.ms.MilestoneService;
 import datasahi.flow.sync.DataHolder;
 import datasahi.flow.sync.DataRecord;
 import datasahi.flow.sync.DataSink;
-import datasahi.flow.sync.Subscription;
+import datasahi.flow.sync.Flow;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 
@@ -18,7 +18,7 @@ public class JdbcSink implements DataSink {
 
     private static final Logger LOG = org.slf4j.LoggerFactory.getLogger(JdbcSink.class);
 
-    private final Map<String, Subscription> subscriptions = new HashMap<>();
+    private final Map<String, Flow> flows = new HashMap<>();
     private final JdbcDataServer jdbcDataServer;
     private final MilestoneService milestoneService;
 
@@ -41,15 +41,15 @@ public class JdbcSink implements DataSink {
 
     public void process(DataHolder dataHolder) {
 /*
-        LOG.debug("Processing data for subscription: {}, record count : {}", dataHolder.getSubscriptionId(), dataHolder
+        LOG.debug("Processing data for flow: {}, record count : {}", dataHolder.getFlowId(), dataHolder
         .fetch().size());
 */
         dataHolder.fetch().forEach(r -> {
             Map<String, Object> data = (Map<String, Object>) ((DataRecord) r).getRecord();
-            String sqlId = dataHolder.getSubscriptionId() + ":update";
+            String sqlId = dataHolder.getFlowId() + ":update";
             int updated = dbService.updateWithMap(sqlId, data);
             if (updated == 0) {
-                sqlId = dataHolder.getSubscriptionId() + ":create";
+                sqlId = dataHolder.getFlowId() + ":create";
                 dbService.updateWithMap(sqlId, data);
             }
         });
@@ -58,7 +58,7 @@ public class JdbcSink implements DataSink {
     }
 
     public void processBatch(DataHolder dataHolder) {
-        LOG.info("Processing data for subscription: {}, record count : {}", dataHolder.getSubscriptionId(), dataHolder
+        LOG.info("Processing data for flow: {}, record count : {}", dataHolder.getFlowId(), dataHolder
                 .fetch().size());
 
         List<Map<String, Object>> paramsList = new ArrayList<>();
@@ -67,12 +67,12 @@ public class JdbcSink implements DataSink {
             paramsList.add(data);
         });
 
-        int[] allUpdated = dbService.batchUpdateWithMap(dataHolder.getSubscriptionId() + ":update", paramsList);
-        LOG.info("Syncing data by update for subscription: {}, input count: {}, update count: {}",
-                dataHolder.getSubscriptionId(),
+        int[] allUpdated = dbService.batchUpdateWithMap(dataHolder.getFlowId() + ":update", paramsList);
+        LOG.info("Syncing data by update for flow: {}, input count: {}, update count: {}",
+                dataHolder.getFlowId(),
                 paramsList.size(), Arrays.stream(allUpdated).sum());
 
-        Subscription sub = subscriptions.get(dataHolder.getSubscriptionId());
+        Flow sub = flows.get(dataHolder.getFlowId());
         String idField = sub.getSourceDataset().getIdField();
         List<Map<String, Object>> createList = new ArrayList<>();
         List<Map<String, Object>> updateList = new ArrayList<>();
@@ -89,22 +89,23 @@ public class JdbcSink implements DataSink {
                 }
             }
         }
-        LOG.info("Syncing data by create+update for subscription: {}, create count: {}, update count: {}",
-                dataHolder.getSubscriptionId(),
+        LOG.info("Syncing data by create+update for flow: {}, create count: {}, update count: {}",
+                dataHolder.getFlowId(),
                 createList.size(), updateList.size());
         if (!createList.isEmpty()) {
-            int[] created = dbService.batchUpdateWithMap(dataHolder.getSubscriptionId() + ":create", createList);
+            int[] created = dbService.batchUpdateWithMap(dataHolder.getFlowId() + ":create", createList);
         }
         if (!updateList.isEmpty()) {
-            int[] updated = dbService.batchUpdateWithMap(dataHolder.getSubscriptionId() + ":update", updateList);
+            int[] updated = dbService.batchUpdateWithMap(dataHolder.getFlowId() + ":update", updateList);
         }
 
         updateMilestone(dataHolder);
     }
 
     private void updateMilestone(DataHolder dataHolder) {
-        Subscription sub = subscriptions.get(dataHolder.getSubscriptionId());
-        LOG.info("Checking for milestone update for subscription {}, with tsFilter {}", sub.getId(), sub.getSourceDataset().isTsCheck());
+        Flow sub = flows.get(dataHolder.getFlowId());
+        LOG.info("Checking for milestone update for flow {}, with tsFilter {}", sub.getId(),
+                sub.getSourceDataset().isTsCheck());
         if (!sub.getSourceDataset().isTsCheck()) return;
 
         Map<String, Object> record = (Map<String, Object>) ((DataRecord) dataHolder.fetch().getLast()).getRecord();
@@ -119,7 +120,7 @@ public class JdbcSink implements DataSink {
     @Override
     public void start() {
         this.dbService = new DatabaseService(jdbcDataServer.getDatabaseConfig());
-        subscriptions.values().forEach(s -> {
+        flows.values().forEach(s -> {
             addSql(s.getSinkDataset().getCrud().getCreate(), s.getId() + ":create");
             addSql(s.getSinkDataset().getCrud().getRead(), s.getId() + ":read");
             addSql(s.getSinkDataset().getCrud().getUpdate(), s.getId() + ":update");
@@ -138,12 +139,12 @@ public class JdbcSink implements DataSink {
     }
 
     @Override
-    public void addSubscription(Subscription subscription) {
-        subscriptions.put(subscription.getId(), subscription);
+    public void addFlow(Flow flow) {
+        flows.put(flow.getId(), flow);
     }
 
     @Override
-    public List<Subscription> getSubscriptions() {
-        return new ArrayList<>(subscriptions.values());
+    public List<Flow> getFlows() {
+        return new ArrayList<>(flows.values());
     }
 }

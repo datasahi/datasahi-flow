@@ -3,7 +3,7 @@ package datasahi.flow.sync;
 import com.google.gson.Gson;
 import org.json.JSONObject;
 
-public class Subscription {
+public class Flow {
 
     private final JSONObject definition;
     private final String id;
@@ -11,7 +11,7 @@ public class Subscription {
     private final Dataset sinkDataset;
     private final BatchInfo batchInfo;
 
-    public Subscription(JSONObject definition) {
+    public Flow(JSONObject definition) {
         this.definition = definition;
         this.id = definition.getString("id");
         Gson gson = new Gson();

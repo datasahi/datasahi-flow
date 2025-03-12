@@ -18,7 +18,7 @@ public class XferConfiguration {
     private final ConfigService configService;
 
     private final List<JSONObject> dataServers = new ArrayList<>();
-    private final List<JSONObject> subscriptions = new ArrayList<>();
+    private final List<JSONObject> flows = new ArrayList<>();
 
     public XferConfiguration(ConfigService configService) {
         this.configService = configService;
@@ -27,21 +27,21 @@ public class XferConfiguration {
     @PostConstruct
     public void load() {
         configService.getConfigPaths().forEach(p -> loadConfig(p));
-        LOG.info("Loaded {} data servers and {} subscriptions", dataServers.size(), subscriptions.size());
+        LOG.info("Loaded {} data servers and {} flows", dataServers.size(), flows.size());
     }
 
     public List<JSONObject> getDataServers() {
         return dataServers;
     }
 
-    public List<JSONObject> getSubscriptions() {
-        return subscriptions;
+    public List<JSONObject> getFlows() {
+        return flows;
     }
 
     private void loadConfig(String path) {
         JSONObject jo = new FileUtil().readJsonFile(path);
         addJsonObjects(jo, dataServers, "dataservers");
-        addJsonObjects(jo, subscriptions, "subscriptions");
+        addJsonObjects(jo, flows, "flows");
     }
 
     private void addJsonObjects(JSONObject jo, List<JSONObject> list, String key) {

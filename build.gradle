@@ -4,7 +4,7 @@ plugins {
     id("io.micronaut.aot") version "4.4.4"
 }
 
-version = "0.1"
+version = "0.1.0"
 group = "datasahi.flow"
 
 repositories {
@@ -77,4 +77,38 @@ micronaut {
 
 tasks.named("dockerfileNative") {
     jdkVersion = "17"
+}
+
+tasks.register('bundleZip', Zip) {
+    dependsOn shadowJar
+    from(layout.buildDirectory.dir("libs")) {
+        include '*-all.jar'
+    }
+    from('src/main/tools') {
+        include '*.*'
+    }
+    archiveFileName = "datasahi-flow-bundle-${version}.zip"
+    destinationDirectory = layout.buildDirectory.dir("distributions")
+}
+
+// Create tar.gz file
+tasks.register('bundleTar', Tar) {
+    dependsOn shadowJar
+
+    from(layout.buildDirectory.dir("libs")) {
+        include '*-all.jar'
+    }
+    from('src/main/tools') {
+        include '*.*'
+    }
+    archiveFileName = "datasahi-flow-bundle-${version}.tar.gz"
+    destinationDirectory = layout.buildDirectory.dir("distributions")
+    compression = Compression.GZIP
+}
+
+tasks.register('bundleDistribution') {
+    group = 'distribution'
+    description = 'Creates distribution bundles containing build/libs jar and src/tools folder contents'
+    dependsOn bundleZip
+    dependsOn bundleTar
 }

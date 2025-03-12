@@ -45,21 +45,4 @@ public class LocalDateTimeConverter {
             throw new IllegalArgumentException("Failed to convert bytes to LocalDateTime", e);
         }
     }
-
-    // Example usage
-    public static void main(String[] args) {
-        LocalDateTime now = LocalDateTime.now();
-        System.out.println("Original DateTime: " + now);
-
-        // Convert to bytes
-        byte[] bytes = toBytes(now);
-        System.out.println("Byte array length: " + bytes.length);
-
-        // Convert back to LocalDateTime
-        LocalDateTime converted = fromBytes(bytes);
-        System.out.println("Converted DateTime: " + converted);
-
-        // Verify they are equal
-        System.out.println("Are equal: " + now.equals(converted));
-    }
 }

@@ -13,21 +13,21 @@ public class DataPipe implements Runnable {
 
     private static final Logger LOG = LoggerFactory.getLogger(DataPipe.class);
 
-    private final Subscription subscription;
+    private final Flow flow;
     private final DataSink sink;
 
     private final BlockingQueue<DataRecord> queue;
     private final DataHolder holder;
 
-    public DataPipe(Subscription subscription, DataSink sink) {
-        this.queue = new ArrayBlockingQueue<>(subscription.getSourceDataset().getQueueSize());
-        this.subscription = subscription;
+    public DataPipe(Flow flow, DataSink sink) {
+        this.queue = new ArrayBlockingQueue<>(flow.getSourceDataset().getQueueSize());
+        this.flow = flow;
         this.sink = sink;
-        this.holder = new DataHolder(subscription.getId(), subscription.getBatchInfo());
+        this.holder = new DataHolder(flow.getId(), flow.getBatchInfo());
     }
 
-    public Subscription getSubscription() {
-        return subscription;
+    public Flow getFlow() {
+        return flow;
     }
 
     public void start() {
@@ -47,7 +47,7 @@ public class DataPipe implements Runnable {
     @Override
     public void run() {
         holder.reset();
-        LOG.info("DataPipe started for {}", subscription.getId());
+        LOG.info("DataPipe started for {}", flow.getId());
         while (true) {
             try {
                 DataRecord record = queue.poll(1, TimeUnit.SECONDS);

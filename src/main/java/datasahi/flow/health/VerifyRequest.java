@@ -2,18 +2,18 @@ package datasahi.flow.health;
 
 public class VerifyRequest {
 
-    private final String subscriptionId;
+    private final String flowId;
     private final int maxRecordCount;
     private final int maxSeconds;
 
-    public VerifyRequest(String subscriptionId, int maxRecordCount, int maxSeconds) {
-        this.subscriptionId = subscriptionId;
+    public VerifyRequest(String flowId, int maxRecordCount, int maxSeconds) {
+        this.flowId = flowId;
         this.maxRecordCount = maxRecordCount;
         this.maxSeconds = maxSeconds;
     }
 
-    public String getSubscriptionId() {
-        return subscriptionId;
+    public String getFlowId() {
+        return flowId;
     }
 
     public int getMaxRecordCount() {
@@ -28,7 +28,7 @@ public class VerifyRequest {
     @Override
     public String toString() {
         return "VerifyRequest{" +
-                "subscriptionId='" + subscriptionId + '\'' +
+                "flowId='" + flowId + '\'' +
                 ", maxRecordCount=" + maxRecordCount +
                 ", maxSeconds=" + maxSeconds +
                 '}';

@@ -88,7 +88,7 @@ public class DatabaseService {
     private String prepareJson(Table records, Set<String> jsonColumns) {
         StringBuilder sb = new StringBuilder();
         List<String> columnsText = records.columns().stream().map(Column::getName).collect(Collectors.toList());
-        records.columns().stream().forEach(c -> System.out.println(c.getName() + " :: " + c.getType()));
+//        records.columns().stream().forEach(c -> System.out.println(c.getName() + " :: " + c.getType()));
         List<Boolean> numericTypes = records.columns().stream()
                 .map(c -> (c.getType().startsWith("int") || c.getType().contains("serial") ||
                         c.getType().equals("numeric")))
