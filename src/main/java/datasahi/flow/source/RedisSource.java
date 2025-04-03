@@ -1,4 +1,4 @@
-package datasahi.flow.sync.source;
+package datasahi.flow.source;
 
 import com.moilioncircle.redis.replicator.RedisReplicator;
 import com.moilioncircle.redis.replicator.Replicator;

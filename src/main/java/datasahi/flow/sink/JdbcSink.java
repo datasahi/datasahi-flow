@@ -1,4 +1,4 @@
-package datasahi.flow.sync.sink;
+package datasahi.flow.sink;
 
 import datasahi.flow.commons.db.DatabaseService;
 import datasahi.flow.ds.DataServerType;
@@ -6,7 +6,6 @@ import datasahi.flow.ds.JdbcDataServer;
 import datasahi.flow.ms.MilestoneService;
 import datasahi.flow.sync.DataHolder;
 import datasahi.flow.sync.DataRecord;
-import datasahi.flow.sync.DataSink;
 import datasahi.flow.sync.Flow;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
