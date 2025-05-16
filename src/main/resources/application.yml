@@ -10,4 +10,4 @@ micronaut:
 datasahi.flow:
   config:
     paths: ${DATASAHI_CONFIG_PATHS:/tmp/datasahi/config/flow.json}
-  work.dir: ${DATASAHI_WORK_DIR:/tmp/datasahi/work}
+  work.dir: ${DATASAHI_WORK_DIR}

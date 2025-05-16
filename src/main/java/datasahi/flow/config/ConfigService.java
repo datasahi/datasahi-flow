@@ -36,6 +36,7 @@ public class ConfigService {
 
     public String getDataDir() {
         String dataDir = workDir + "/data";
+        LOGGER.info("dataDir :: " + dataDir);
         try {
             File file = new File(dataDir);
             if (!file.exists()) {

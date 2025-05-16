@@ -4,5 +4,8 @@ public enum DataServerType {
 
     REDIS,
     ACTIVEMQ,
-    JDBC
+    JDBC,
+    SMBFS,
+    GRPCFS,
+    LOCALFS,
 }

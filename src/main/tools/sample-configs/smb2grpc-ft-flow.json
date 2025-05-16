@@ -1,0 +1,42 @@
+{
+  "dataservers": [
+    {
+      "id": "smb-fs",
+      "type": "SMBFS",
+      "host": "localhost",
+      "port": 445,
+      "username": "smbuser",
+      "password": "password",
+      "shareName": "shared"
+    },
+    {
+      "id": "grpc-fs",
+      "type": "GRPCFS",
+      "host": "localhost",
+      "port": 8095
+    }
+  ],
+  "flows": [
+    {
+      "id": "smb-to-grpc-files",
+      "source": {
+        "server": "smb-fs",
+        "config" : {
+          "inputFolder": "/input",
+          "recursive": true,
+          "archiveFolder": "/archived",
+          "errorFolder": "/error",
+          "checkMillis": 2000,
+          "pickupMillis": 5000
+        }
+      },
+      "sink": {
+        "server": "grpc-fs"
+      },
+      "batch": {
+        "maxCount": 1,
+        "maxMillis": 1000
+      }
+    }
+  ]
+}
