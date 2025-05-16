@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+option java_package = "datasahi.flow.ds.grpcfs";
+option java_multiple_files = true;
+
+package fileReceiver;
+
+message FileChunk {
+  string file_id = 1;
+  string file_path = 2;
+  string file_name = 3;
+  int64 size_in_bytes = 4;
+  int64 date_created = 5;
+  int64 date_modified = 6;
+  bytes content = 7;          // Chunk of file content
+  bool is_last_chunk = 8;     // Indicates if this is the last chunk
+}
+
+message FileReceiveResponse {
+  bool success = 1;           // Whether file was received successfully
+  string message = 2;          // Additional information or error message
+}
+
+service FileTransferService {
+  // Streaming RPC to receive file chunks
+  rpc ReceiveFile(stream FileChunk) returns (FileReceiveResponse) {}
+}

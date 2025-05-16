@@ -1,0 +1,34 @@
+{
+  "dataservers": [
+    {
+      "id": "grpc-fs",
+      "type": "GRPCFS",
+      "host": "localhost",
+      "port": 8095,
+      "workFolder": "/xmnt/data/datasahi/grpcfs/work"
+    },
+    {
+      "id": "local-fs",
+      "type": "LOCALFS",
+      "dataFolder": "/xmnt/data/datasahi/grpcfs/data",
+      "workFolder": "/xmnt/data/datasahi/grpcfs/work",
+      "archiveFolder": "/xmnt/data/datasahi/grpcfs/archived",
+      "errorFolder": "/xmnt/data/datasahi/grpcfs/error"
+    }
+  ],
+  "flows": [
+    {
+      "id": "grpc-to-local-files",
+      "source": {
+        "server": "grpc-fs"
+      },
+      "sink": {
+        "server": "local-fs"
+      },
+      "batch": {
+        "maxCount": 1,
+        "maxMillis": 1000
+      }
+    }
+  ]
+}

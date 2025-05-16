@@ -1,5 +1,6 @@
 package datasahi.flow.sync;
 
+import datasahi.flow.sink.DataSink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -1,8 +1,9 @@
-package datasahi.flow.sync;
+package datasahi.flow.source;
 
 import datasahi.flow.ds.DataServerType;
 import datasahi.flow.health.VerifyRequest;
 import datasahi.flow.health.VerifyResponse;
+import datasahi.flow.sync.DataPipe;
 
 import java.util.List;
 

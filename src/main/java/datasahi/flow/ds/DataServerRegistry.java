@@ -1,6 +1,9 @@
 package datasahi.flow.ds;
 
 import com.google.gson.Gson;
+import datasahi.flow.ds.grpcfs.GrpcFileServer;
+import datasahi.flow.ds.localfs.LocalFileServer;
+import datasahi.flow.ds.smb.SMBDataServer;
 import jakarta.inject.Singleton;
 import org.json.JSONObject;
 
@@ -28,6 +31,15 @@ public class DataServerRegistry {
                 break;
             case JDBC:
                 ds = gson.fromJson(dsJson.toString(), JdbcDataServer.class);
+                break;
+            case SMBFS:
+                ds = gson.fromJson(dsJson.toString(), SMBDataServer.class);
+                break;
+            case GRPCFS:
+                ds = gson.fromJson(dsJson.toString(), GrpcFileServer.class);
+                break;
+            case LOCALFS:
+                ds = gson.fromJson(dsJson.toString(), LocalFileServer.class);
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported data server type: " + type);

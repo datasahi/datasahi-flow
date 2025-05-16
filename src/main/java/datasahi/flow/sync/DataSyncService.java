@@ -5,11 +5,20 @@ import datasahi.flow.ds.DataServer;
 import datasahi.flow.ds.DataServerType;
 import datasahi.flow.ds.JdbcDataServer;
 import datasahi.flow.ds.RedisDataServer;
+import datasahi.flow.ds.grpcfs.GrpcFileReceiver;
+import datasahi.flow.ds.grpcfs.GrpcFileServer;
+import datasahi.flow.ds.grpcfs.GrpcFileSink;
+import datasahi.flow.ds.localfs.LocalFileServer;
+import datasahi.flow.ds.localfs.LocalFileSystemSink;
+import datasahi.flow.ds.smb.SMBDataServer;
+import datasahi.flow.ds.smb.SMBSource;
 import datasahi.flow.health.VerifyRequest;
 import datasahi.flow.health.VerifyResponse;
 import datasahi.flow.ms.MilestoneService;
-import datasahi.flow.sync.sink.JdbcSink;
-import datasahi.flow.sync.source.RedisSource;
+import datasahi.flow.sink.DataSink;
+import datasahi.flow.sink.JdbcSink;
+import datasahi.flow.source.DataSource;
+import datasahi.flow.source.RedisSource;
 import io.micronaut.context.annotation.Context;
 import jakarta.annotation.PostConstruct;
 import jakarta.inject.Singleton;
@@ -45,6 +54,7 @@ public class DataSyncService {
         registryMaker.getFlowRegistry().getFlows().forEach(this::registerSource);
         registryMaker.getFlowRegistry().getFlows().forEach(this::wireFlow);
         LOG.info("Flows setup for data sync. Total flows: " + pipeMap.size());
+        registryMaker.getFlowRegistry().getFlows().forEach(f -> LOG.info(f.toString()));
         sinkMap.values().forEach(DataSink::start);
         pipeMap.values().forEach(DataPipe::start);
     }
@@ -93,13 +103,13 @@ public class DataSyncService {
         }
     }
 
-    private void wireFlow(Flow sub) {
-        DataSource dataSource = sourceMap.get(sub.getSourceId());
-        DataSink dataSink = sinkMap.get(sub.getSinkId());
-        DataPipe dataPipe = new DataPipe(sub, dataSink);
+    private void wireFlow(Flow flow) {
+        DataSource dataSource = sourceMap.get(flow.getSourceId());
+        DataSink dataSink = sinkMap.get(flow.getSinkId());
+        DataPipe dataPipe = new DataPipe(flow, dataSink);
         dataSource.addDataPipe(dataPipe);
-        dataSink.addFlow(sub);
-        pipeMap.put(sub.getId(), dataPipe);
+        dataSink.addFlow(flow);
+        pipeMap.put(flow.getId(), dataPipe);
     }
 
     public void stop(String id) {
@@ -124,6 +134,16 @@ public class DataSyncService {
                     sourceMap.put(sub.getSourceId(), new RedisSource((RedisDataServer) source, milestoneService));
                 }
                 break;
+            case SMBFS:
+                if (!sourceMap.containsKey(sub.getSourceId())) {
+                    sourceMap.put(sub.getSourceId(), new SMBSource((SMBDataServer) source));
+                }
+                break;
+            case GRPCFS:
+                if (!sourceMap.containsKey(sub.getSourceId())) {
+                    sourceMap.put(sub.getSourceId(), new GrpcFileReceiver((GrpcFileServer) source));
+                }
+                break;
             default:
                 throw new RuntimeException(type + " not supported yet for source");
         }
@@ -139,6 +159,17 @@ public class DataSyncService {
             case JDBC:
                 if (!sinkMap.containsKey(sub.getSinkId())) {
                     sinkMap.put(sub.getSinkId(), new JdbcSink((JdbcDataServer) sink, milestoneService));
+                }
+                break;
+            case GRPCFS:
+                if (!sinkMap.containsKey(sub.getSinkId())) {
+                    sinkMap.put(sub.getSinkId(), new GrpcFileSink((GrpcFileServer) sink, registryMaker.getDataServerRegistry()));
+                }
+                break;
+            case LOCALFS:
+                if (!sinkMap.containsKey(sub.getSinkId())) {
+                    sinkMap.put(sub.getSinkId(), new LocalFileSystemSink((LocalFileServer) sink,
+                            registryMaker.getDataServerRegistry()));
                 }
                 break;
             default:

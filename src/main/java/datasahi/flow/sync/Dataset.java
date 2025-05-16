@@ -1,5 +1,12 @@
 package datasahi.flow.sync;
 
+import com.google.gson.TypeAdapter;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
+import org.json.JSONObject;
+
+import java.io.IOException;
+
 public class Dataset {
 
     private String server;
@@ -7,12 +14,13 @@ public class Dataset {
     private String dataset;
     private String dataFilter;
     private CrudDefinition crud;
-    private int queueSize;
+    private int queueSize = 10;
     private boolean fingerprintCheck;
     private boolean tsCheck;
     private int tsSkipSeconds;
     private String tsField;
     private String idField;
+    private JSONObject configJson;
 
     public String getServer() {
         return server;
@@ -113,6 +121,34 @@ public class Dataset {
         return this;
     }
 
+    public JSONObject getConfigJson() {
+        return configJson;
+    }
+
+    public Dataset setConfigJson(JSONObject configJson) {
+        this.configJson = configJson;
+        return this;
+    }
+
+    // Custom Gson TypeAdapter for JSONObject
+    public static class JSONObjectTypeAdapter extends TypeAdapter<JSONObject> {
+
+        @Override
+        public void write(JsonWriter out, JSONObject value) throws IOException {
+            if (value == null) {
+                out.nullValue();
+                return;
+            }
+            out.jsonValue(value.toString());
+        }
+
+        @Override
+        public JSONObject read(JsonReader in) throws IOException {
+            String jsonString = in.nextString();
+            return new JSONObject(jsonString);
+        }
+    }
+
     @Override
     public String toString() {
         return "Dataset{" +
@@ -127,6 +163,7 @@ public class Dataset {
                 ", tsSkipSeconds=" + tsSkipSeconds +
                 ", tsField='" + tsField + '\'' +
                 ", idField='" + idField + '\'' +
+                ", config=" + configJson +
                 '}';
     }
 }
