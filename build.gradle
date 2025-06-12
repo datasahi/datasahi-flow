@@ -5,10 +5,11 @@ plugins {
     id 'com.google.protobuf' version '0.9.5'
 }
 
-version = "0.1.0"
+version = "0.1.1"
 group = "datasahi.flow"
 
 repositories {
+    mavenLocal()
     mavenCentral()
 }
 
@@ -18,7 +19,7 @@ dependencies {
     implementation("io.micronaut.serde:micronaut-serde-jackson")
     compileOnly("io.micronaut:micronaut-http-client")
 
-    implementation 'com.moilioncircle:redis-replicator:3.8.1'
+    implementation 'com.moilioncircle:redis-replicator:3.9.0'
     implementation 'org.json:json:20250107'
     implementation 'com.google.code.gson:gson:2.11.0'
     implementation('org.apache.commons:commons-jexl3:3.4.0')

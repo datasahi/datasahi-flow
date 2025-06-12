@@ -130,6 +130,7 @@ public class RedisSource implements DataSource, Runnable {
                 handleSAddCommand((SAddCommand) event);
             } else if (event instanceof PostRdbSyncEvent) {
                 liveTraffic = true;
+                LOG.info("Live traffic started");
             } else if (event instanceof PingCommand) {
                 LOG.debug("PingCommand received");
             } else {
@@ -186,6 +187,7 @@ public class RedisSource implements DataSource, Runnable {
     }
 
     private void processHashData(String key, Map<String, String> dataHash) {
+        LOG.debug("Handling hash data for key: {}, record: {}", key, dataHash);
         boolean processed = false;
         DataRecord<Map<String, String>> record =
                 new DataRecord<>(redisDataServer.getId(), LocalDateTime.now(), key, dataHash);

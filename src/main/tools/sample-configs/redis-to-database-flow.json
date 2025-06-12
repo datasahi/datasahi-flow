@@ -52,6 +52,34 @@
         "maxCount": 500,
         "maxMillis": 1000
       }
+    },
+    {
+      "id": "redis-to-mysql",
+      "source": {
+        "server": "redis-local",
+        "type": "hash",
+        "dataset": "D2C_LEAD_TRACKER",
+        "idField": "id",
+        "tsField": "updatedTs",
+        "dataFilter": "status == 'SUBMITTED'",
+        "queueSize": 10000,
+        "tsCheck": true,
+        "tsSkipSeconds": 60
+      },
+      "sink": {
+        "server": "mysql-local",
+        "type": "table",
+        "dataset": "crm.leads",
+        "crud": {
+          "create": "insert into crm.lead_tracker(id,name,age,status,created_at,updated_at) values (:id,:name,:age,:status,:createdTs,:updatedTs)",
+          "read": "select id from crm.lead_tracker where id = :id",
+          "update": "update crm.lead_tracker set name = :name, age = :age, status = :status, updated_at = :updatedTs where id = :id"
+        }
+      },
+      "batch": {
+        "maxCount": 500,
+        "maxMillis": 1000
+      }
     }
   ]
 }
