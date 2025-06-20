@@ -3,6 +3,7 @@ package datasahi.flow.source;
 import com.moilioncircle.redis.replicator.RedisReplicator;
 import com.moilioncircle.redis.replicator.Replicator;
 import com.moilioncircle.redis.replicator.cmd.impl.HMSetCommand;
+import com.moilioncircle.redis.replicator.cmd.impl.HSetCommand;
 import com.moilioncircle.redis.replicator.cmd.impl.PingCommand;
 import com.moilioncircle.redis.replicator.cmd.impl.SAddCommand;
 import com.moilioncircle.redis.replicator.event.Event;
@@ -117,6 +118,9 @@ public class RedisSource implements DataSource, Runnable {
     }
 
     private void handleEvent(Event event) {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Event :: " + event);
+        }
         try {
             if (event instanceof KeyStringValueString) {
                 handleStringEvent((KeyStringValueString) event);
@@ -126,6 +130,8 @@ public class RedisSource implements DataSource, Runnable {
                 handleSetEvent((KeyStringValueSet) event);
             } else if (event instanceof HMSetCommand) {
                 handleHMSetCommand((HMSetCommand) event);
+            } else if (event instanceof HSetCommand) {
+                handleHSetCommand((HSetCommand) event);
             } else if (event instanceof SAddCommand) {
                 handleSAddCommand((SAddCommand) event);
             } else if (event instanceof PostRdbSyncEvent) {
@@ -134,7 +140,7 @@ public class RedisSource implements DataSource, Runnable {
             } else if (event instanceof PingCommand) {
                 LOG.debug("PingCommand received");
             } else {
-                LOG.debug("Unhandled event type received: {}", event.getClass().getSimpleName());
+                LOG.info("Unhandled event type received: {}", event.getClass().getSimpleName());
             }
         } catch (Exception e) {
             LOG.error("Error handling redis event: " + event, e);
@@ -166,6 +172,21 @@ public class RedisSource implements DataSource, Runnable {
         });
 
 //        LOG.info("HMSet hash object: {}", dataHash);
+        processHashData(key, dataHash);
+    }
+
+    private void handleHSetCommand(HSetCommand command) {
+        String key = new String(command.getKey());
+        Map<byte[], byte[]> fields = command.getFields();
+        Map<String, String> dataHash = new HashMap<>();
+        // Convert and store field-value pairs
+        fields.forEach((field, value) -> {
+            String fieldStr = new String(field);
+            String valueStr = new String(value);
+            dataHash.put(fieldStr, valueStr);
+        });
+
+//        LOG.info("HSet hash object: {}", dataHash);
         processHashData(key, dataHash);
     }
 
