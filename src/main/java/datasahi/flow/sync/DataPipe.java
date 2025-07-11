@@ -63,11 +63,14 @@ public class DataPipe implements Runnable {
                     }
                 }
                 if (holder.isBatched()) {
-                    long start = System.currentTimeMillis();
-                    sink.processBatch(holder);
-                    int time = (int) (System.currentTimeMillis() - start);
-                    LOG.info("Dataholder processed for record count {} in {} millis", holder.fetch().size(), time);
-                    holder.reset();
+                    try {
+                        long start = System.currentTimeMillis();
+                        sink.processBatch(holder);
+                        int time = (int) (System.currentTimeMillis() - start);
+                        LOG.info("Dataholder processed for record count {} in {} millis", holder.fetch().size(), time);
+                    } finally {
+                        holder.reset();
+                    }
                 }
             } catch (InterruptedException e) {
                 // Nothing to do
