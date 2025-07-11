@@ -13,6 +13,8 @@ import org.slf4j.Logger;
 import java.time.LocalDateTime;
 import java.util.*;
 
+import static java.lang.Math.abs;
+
 public class JdbcSink implements DataSink {
 
     private static final Logger LOG = org.slf4j.LoggerFactory.getLogger(JdbcSink.class);
@@ -67,14 +69,18 @@ public class JdbcSink implements DataSink {
         });
 
         int[] allUpdated = dbService.batchUpdateWithMap(dataHolder.getFlowId() + ":update", paramsList);
-        LOG.info("Syncing data by update for flow: {}, input count: {}, update count: {}",
-                dataHolder.getFlowId(),
-                paramsList.size(), Arrays.stream(allUpdated).sum());
+        int updatedCount = Arrays.stream(allUpdated).filter(i -> i == 1).sum();
+        int possibleInsertCount = Arrays.stream(allUpdated).filter(i -> i == 0).sum();
+        int errorCount = abs(Arrays.stream(allUpdated).filter(i -> i == -1).sum());
+        LOG.info("Syncing data by update for flow: {}, input count: {}, updated : {}, possible inserts: {}, error: {}",
+                dataHolder.getFlowId(), paramsList.size(), updatedCount, possibleInsertCount, errorCount
+        );
 
         Flow sub = flows.get(dataHolder.getFlowId());
         String idField = sub.getSourceDataset().getIdField();
         List<Map<String, Object>> createList = new ArrayList<>();
         List<Map<String, Object>> updateList = new ArrayList<>();
+        List<Map<String, Object>> errorList = new ArrayList<>();
         Set<Object> createIds = new HashSet<>();
         for (int i = 0; i < allUpdated.length; i++) {
             if (allUpdated[i] == 0) {
@@ -86,8 +92,15 @@ public class JdbcSink implements DataSink {
                     createList.add(paramsList.get(i));
                     createIds.add(id);
                 }
+            } else if (allUpdated[i] == -1) {
+                errorList.add(paramsList.get(i));
             }
         }
+        // print all records from errorList into log file
+        if (!errorList.isEmpty()) {
+            LOG.error("Error records for flow {}: {}", dataHolder.getFlowId(), errorList);
+        }
+
         LOG.info("Syncing data by create+update for flow: {}, create count: {}, update count: {}",
                 dataHolder.getFlowId(),
                 createList.size(), updateList.size());
@@ -97,7 +110,6 @@ public class JdbcSink implements DataSink {
         if (!updateList.isEmpty()) {
             int[] updated = dbService.batchUpdateWithMap(dataHolder.getFlowId() + ":update", updateList);
         }
-
         updateMilestone(dataHolder);
     }
 
