@@ -59,8 +59,10 @@ public class JdbcSink implements DataSink {
     }
 
     public void processBatch(DataHolder dataHolder) {
-        LOG.info("Processing data for flow: {}, record count : {}", dataHolder.getFlowId(), dataHolder
-                .fetch().size());
+        if (!dataHolder.fetch().isEmpty()) {
+            LOG.info("Processing data for flow: {}, record count : {}", dataHolder.getFlowId(),
+                    dataHolder.fetch().size());
+        }
 
         List<Map<String, Object>> paramsList = new ArrayList<>();
         dataHolder.fetch().forEach(r -> {
@@ -72,7 +74,7 @@ public class JdbcSink implements DataSink {
         int updatedCount = Arrays.stream(allUpdated).filter(i -> i == 1).sum();
         int possibleInsertCount = Arrays.stream(allUpdated).filter(i -> i == 0).sum();
         int errorCount = abs(Arrays.stream(allUpdated).filter(i -> i == -1).sum());
-        LOG.info("Syncing data by update for flow: {}, input count: {}, updated : {}, possible inserts: {}, error: {}",
+        LOG.debug("Syncing data by update for flow: {}, input count: {}, updated : {}, possible inserts: {}, error: {}",
                 dataHolder.getFlowId(), paramsList.size(), updatedCount, possibleInsertCount, errorCount
         );
 
@@ -101,7 +103,7 @@ public class JdbcSink implements DataSink {
             LOG.error("Error records for flow {}: {}", dataHolder.getFlowId(), errorList);
         }
 
-        LOG.info("Syncing data by create+update for flow: {}, create count: {}, update count: {}",
+        LOG.debug("Syncing data by create+update for flow: {}, create count: {}, update count: {}",
                 dataHolder.getFlowId(),
                 createList.size(), updateList.size());
         if (!createList.isEmpty()) {
@@ -115,12 +117,12 @@ public class JdbcSink implements DataSink {
 
     private void updateMilestone(DataHolder dataHolder) {
         Flow sub = flows.get(dataHolder.getFlowId());
-        LOG.info("Checking for milestone update for flow {}, with tsFilter {}", sub.getId(),
+        LOG.debug("Checking for milestone update for flow {}, with tsFilter {}", sub.getId(),
                 sub.getSourceDataset().isTsCheck());
         if (!sub.getSourceDataset().isTsCheck()) return;
 
         Map<String, Object> record = (Map<String, Object>) ((DataRecord) dataHolder.fetch().getLast()).getRecord();
-        LOG.info("Updating milestone for record {} from field {}", record, sub.getSourceDataset().getTsField());
+        LOG.debug("Updating milestone for record {} from field {}", record, sub.getSourceDataset().getTsField());
         if (record.containsKey(sub.getSourceDataset().getTsField())) {
             String updatedTime = (String) record.get(sub.getSourceDataset().getTsField());
             LocalDateTime milestone = LocalDateTime.parse(updatedTime);
