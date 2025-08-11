@@ -46,7 +46,7 @@ Sample config json - `flow.json`
     {
       "id": "mysql-local",
       "type": "JDBC",
-      "url": "jdbc:mysql://localhost:3306/crm",
+      "url": "jdbc:mysql://localhost:3306/enquirydb",
       "user": "xxx",
       "password": "xxx",
       "driverClass" : "com.mysql.jdbc.Driver"
@@ -54,7 +54,7 @@ Sample config json - `flow.json`
     {
       "id": "sqlserver-dev",
       "type": "JDBC",
-      "url": "jdbc:sqlserver://host:port;trustServerCertificate=true;databaseName=crm;",
+      "url": "jdbc:sqlserver://host:port;trustServerCertificate=true;databaseName=enquirydb;",
       "user": "xxx",
       "password": "xxx",
       "driverClass" : "com.microsoft.sqlserver.jdbc.SQLServerDriver"
@@ -66,10 +66,10 @@ Sample config json - `flow.json`
       "source": {
         "server": "redis-local",
         "type": "hash",
-        "dataset": "D2C_LEAD_TRACKER",
+        "dataset": "INQUIRY_FORM",
         "idField": "id",
-        "tsField": "updatedTs",
-        "dataFilter": "status == 'SUBMITTED'",
+        "tsField": "updatedAt",
+        "dataFilter": "status == 'NEW'",
         "queueSize": 10000,
         "tsCheck": true,
         "tsSkipSeconds": 60
@@ -77,11 +77,11 @@ Sample config json - `flow.json`
       "sink": {
         "server": "sqlserver-dev",
         "type": "table",
-        "dataset": "crm.leads",
+        "dataset": "inquiry.form.db",
         "crud": {
-          "create": "insert into crm..lead_tracker(id,name,age,status,created_at,updated_at) values (:id,:name,:age,:status,:createdTs,:updatedTs)",
-          "read": "select id from crm..lead_tracker where id = :id",
-          "update": "update crm..lead_tracker set name = :name, age = :age, status = :status, updated_at = :updatedTs where id = :id"
+          "create": "insert into enquirydb..inquiry_form(id,name,message,status,created_at,updated_at) values (:id,:name,:message,:status,:createdAt,:updatedAt)",
+          "read": "select id from enquirydb..inquiry_form where id = :id",
+          "update": "update enquirydb..inquiry_form set name = :name, message = :message, status = :status, updated_at = :updatedAt where id = :id"
         }
       },
       "batch": {

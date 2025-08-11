@@ -41,6 +41,8 @@ public class RedisSource implements DataSource, Runnable {
     private volatile boolean verifyMode = false;
     private VerifyResponse verifyResponse = null;
 
+    private Set<String> unhandledEventNames = new HashSet<>();
+
     public RedisSource(RedisDataServer dataServer, MilestoneService milestoneService) {
         this.redisDataServer = dataServer;
         this.milestoneService = milestoneService;
@@ -140,7 +142,11 @@ public class RedisSource implements DataSource, Runnable {
             } else if (event instanceof PingCommand) {
                 LOG.debug("PingCommand received");
             } else {
-                LOG.info("Unhandled event type received: {}", event.getClass().getSimpleName());
+                String eventName = event.getClass().getSimpleName();
+                if (!unhandledEventNames.contains(eventName)) {
+                    LOG.info("Unhandled event type received: {}", eventName);
+                    unhandledEventNames.add(eventName);
+                }
             }
         } catch (Exception e) {
             LOG.error("Error handling redis event: " + event, e);

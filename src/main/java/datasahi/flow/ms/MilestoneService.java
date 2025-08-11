@@ -30,7 +30,7 @@ public class MilestoneService {
         byte[] bytes = kvService.getStore().get("milestones:" + key);
         if (bytes == null) return null;
         LocalDateTime localDateTime = LocalDateTimeConverter.fromBytes(bytes);
-        LOGGER.info("Fetched milestone {} for key {}", localDateTime, key);
+        LOGGER.debug("Fetched milestone {} for key {}", localDateTime, key);
         return localDateTime;
     }
 }

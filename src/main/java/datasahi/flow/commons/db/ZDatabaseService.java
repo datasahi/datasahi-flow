@@ -3,6 +3,7 @@ package datasahi.flow.commons.db;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
 import org.sql2o.Connection;
 import org.sql2o.Query;
 import org.sql2o.Sql2o;
@@ -16,20 +17,24 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class DatabaseService {
+public class ZDatabaseService {
+
+    private static final Logger LOG = org.slf4j.LoggerFactory.getLogger(ZDatabaseService.class);
 
     private SqlRepository sqlRepository;
     private Sql2o sql2o;
     private DatabaseConfig config;
     private boolean returnGeneratedKeys = false;
     private final HikariDataSource dataSource;
+    private final SqlParameterExtractor sqlParameterExtractor;
 
-    public DatabaseService(DatabaseConfig config) {
+    public ZDatabaseService(DatabaseConfig config) {
         this.config = config;
         this.dataSource = new HikariDataSource(createHikariConfig());
         this.sql2o = new Sql2o(dataSource);
         this.sqlRepository = new SqlRepository(config.getSqlFiles());
         this.sql2o.setDefaultColumnMappings(config.getColumnMappings());
+        this.sqlParameterExtractor = new SqlParameterExtractor();
     }
 
     public void close() {
@@ -171,18 +176,23 @@ public class DatabaseService {
     public int updateWithMap(String sqlId, Map<String, Object> parameters) {
 
 //        System.out.println("sqlid :: " + sqlId + ". Params :: " + parameters);
-        try (Connection con = sql2o.open()) {
+        try (Connection con = sql2o.beginTransaction()) {
+            con.setRollbackOnClose(true);
             getQuery(parameters, sqlId, con).executeUpdate();
+            con.commit();
+            con.setRollbackOnClose(false);
             return con.getResult();
         }
     }
 
     public int updateWithObject(String sqlId, Object model) {
 
-//        System.out.println("sqlid :: " + sqlId + ". Params :: " + parameters);
-        try (Connection con = sql2o.open()) {
+        try (Connection con = sql2o.beginTransaction()) {
+            con.setRollbackOnClose(true);
             String sql = sqlRepository.getSql(sqlId);
             con.createQuery(sql, returnGeneratedKeys).bind(model).executeUpdate();
+            con.commit();
+            con.setRollbackOnClose(false);
             return con.getResult();
         }
     }
@@ -190,8 +200,11 @@ public class DatabaseService {
     public int executeUpdateSql(String sql) {
 
 //        System.out.println("sqlid :: " + sqlId + ". Params :: " + parameters);
-        try (Connection con = sql2o.open()) {
+        try (Connection con = sql2o.beginTransaction()) {
+            con.setRollbackOnClose(true);
             con.createQuery(sql, returnGeneratedKeys).executeUpdate();
+            con.commit();
+            con.setRollbackOnClose(false);
             return con.getResult();
         }
     }
@@ -206,14 +219,16 @@ public class DatabaseService {
     public int[] batchUpdateWithMap(String sqlId, List<Map<String, Object>> parametersList) {
 
         String sql = sqlRepository.getSql(sqlId);
+        Set<String> paramKeys = sqlParameterExtractor.extractParameters(sql);
 
+        boolean error = false;
         try (Connection con = sql2o.beginTransaction()) {
+            con.setRollbackOnClose(true);
             Query query = con.createQuery(sql, returnGeneratedKeys);
             int size = parametersList.size();
             for (int i = 0; i < size; i++) {
                 Map<String, Object> parameters = parametersList.get(i);
-                for (String key : parameters.keySet()) {
-                    if (key.equals("_class")) continue;
+                for (String key : paramKeys) {
                     try {
                         query.addParameter(key, parameters.get(key));
                     } catch (Exception e) {
@@ -224,18 +239,43 @@ public class DatabaseService {
             }
             query.executeBatch(); // executes entire batch
             con.commit();         // remember to call commit(), else sql2o will automatically rollback.
+            con.setRollbackOnClose(false);
             return con.getBatchResult();
+        } catch (Exception e) {
+            error = true;
+            LOG.error("Error in executing batch update for sql: " + sql + ". Trying single record update.", e);
         }
+        if (error) {
+            // execute each query as a single query, use updateWithMap function
+            return updateRecordByRecord(sqlId, parametersList, sql);
+        }
+        return new int[parametersList.size()];
+    }
+
+    private int[] updateRecordByRecord(String sqlId, List<Map<String, Object>> parametersList, String sql) {
+        int[] results = new int[parametersList.size()];
+        for (int i = 0; i < parametersList.size(); i++) {
+            try {
+                results[i] = updateWithMap(sqlId, parametersList.get(i));
+            } catch (Exception ex) {
+                LOG.error("Error in executing single record update for sql: " + sql + ". Parameters :: " +
+                        parametersList.get(i), ex);
+                results[i] = -1;
+            }
+        }
+        return results;
     }
 
     private Query getQuery(Map<String, Object> parameters, String sqlId, Connection con) {
 
 //        System.out.println("sqlId ::" + sqlId);
         String sql = sqlRepository.getSql(sqlId);
+        Set<String> paramKeys = sqlParameterExtractor.extractParameters(sql);
+
         Query query = con.createQuery(sql, returnGeneratedKeys);
-        for (String key : parameters.keySet()) {
-            try {
+        for (String key : paramKeys) {
 //                System.out.println(key + "::" + parameters.get(key));
+            try {
                 query.addParameter(key, parameters.get(key));
             } catch (Exception e) {
                 // Nothing to do, this can be ignored

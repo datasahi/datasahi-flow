@@ -67,7 +67,9 @@ public class DataPipe implements Runnable {
                         long start = System.currentTimeMillis();
                         sink.processBatch(holder);
                         int time = (int) (System.currentTimeMillis() - start);
-                        LOG.info("Dataholder processed for record count {} in {} millis", holder.fetch().size(), time);
+                        if (!holder.fetch().isEmpty()) {
+                            LOG.info("Dataholder processed for record count {} in {} millis", holder.fetch().size(), time);
+                        }
                     } finally {
                         holder.reset();
                     }

@@ -8,17 +8,17 @@
       "port": 6379
     },
     {
-      "id": "mysql-local",
+      "id": "sqlserver-dev",
       "type": "JDBC",
-      "url": "jdbc:mysql://localhost:3306/enquirydb",
+      "url": "jdbc:sqlserver://host:port;trustServerCertificate=true;databaseName=enquirydb;",
       "user": "xxx",
       "password": "xxx",
-      "driverClass" : "com.mysql.jdbc.Driver"
+      "driverClass" : "com.microsoft.sqlserver.jdbc.SQLServerDriver"
     }
   ],
   "flows": [
     {
-      "id": "redis-to-mysql",
+      "id": "redis-to-sqlserver",
       "source": {
         "server": "redis-local",
         "type": "hash",
@@ -31,13 +31,13 @@
         "tsSkipSeconds": 60
       },
       "sink": {
-        "server": "mysql-local",
+        "server": "sqlserver-dev",
         "type": "table",
         "dataset": "inquiry.form.db",
         "crud": {
-          "create": "insert into enquirydb.inquiry_form(id,name,message,status,created_at,updated_at) values (:id,:name,:message,:status,:createdAt,:updatedAt)",
-          "read": "select id from enquirydb.inquiry_form where id = :id",
-          "update": "update enquirydb.inquiry_form set name = :name, message = :message, status = :status, updated_at = :updatedAt where id = :id"
+          "create": "insert into enquirydb..inquiry_form(id,name,message,status,created_at,updated_at) values (:id,:name,:message,:status,:createdAt,:updatedAt)",
+          "read": "select id from enquirydb..inquiry_form where id = :id",
+          "update": "update enquirydb..inquiry_form set name = :name, message = :message, status = :status, updated_at = :updatedAt where id = :id"
         }
       },
       "batch": {
